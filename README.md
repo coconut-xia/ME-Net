@@ -14,15 +14,6 @@ Second, we propose **ME-Net**, a lightweight dual-stream detector tailored for e
 
 Finally, we deploy the complete sensing-to-processing pipeline on an NVIDIA Jetson AGX Orin using TensorRT FP16. The system achieves real-time performance of **52 FPS in G2A scenarios** and **34 FPS in A2A scenarios**.
 
-## Release Plan
-
-- [x] Project repository and README
-- [ ] ME-Net source code
-- [ ] Training and evaluation scripts
-- [ ] Pretrained checkpoints
-- [ ] GAREUD dataset and access instructions
-- [ ] Paper and citation metadata
-
 ## Citation
 
 Citation information will be added when the paper becomes publicly available.
