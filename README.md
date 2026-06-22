@@ -1,16 +1,5 @@
 # Full-Stack UAV Detection Pipeline from Precise RGB-Event Sensing to Efficient Edge Processing
 
-Haoji Xia, Siying Liu, Jiaqi Jin, Sihan Wang, Tong Huang, Xujie Han, Zikai Wang, Yuxin Zhong, Hanle Zheng, Chen Cheng, Hao Guo, and Lei Deng
-
-Taiyuan University of Technology · Tsinghua University
-
----
-
-🚀 🚀 🚀 **News**
-
-- **June 22, 2026**: Project repository created and README released.
-- The cleaned ME-Net implementation, pretrained checkpoints, training and evaluation instructions, and GAREUD access information are being prepared.
-
 ## Abstract
 
 RGB-Event fusion offers strong potential for UAV detection, but real-world deployment is limited by the lack of precisely aligned multimodal datasets and efficient edge-processing methods. We present a full-stack RGB-Event UAV detection pipeline spanning precise sensing, dataset construction, multimodal modeling, and edge deployment.
