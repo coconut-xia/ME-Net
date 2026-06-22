@@ -1,55 +1,38 @@
-# ME-Net
+# Full-Stack UAV Detection Pipeline from Precise RGB-Event Sensing to Efficient Edge Processing
 
-Official project repository for **ME-Net**, the lightweight RGB-Event UAV detector introduced in:
+Haoji Xia, Siying Liu, Jiaqi Jin, Sihan Wang, Tong Huang, Xujie Han, Zikai Wang, Yuxin Zhong, Hanle Zheng, Chen Cheng, Hao Guo, and Lei Deng
 
-> **Full-Stack UAV Detection Pipeline from Precise RGB-Event Sensing to Efficient Edge Processing**
+Taiyuan University of Technology · Tsinghua University
 
-> [!IMPORTANT]
-> This repository is under preparation. The cleaned network implementation, pretrained weights, training and evaluation instructions, and dataset access information will be released after internal organization.
+---
 
-## Overview
+🚀 🚀 🚀 **News**
 
-ME-Net is a lightweight dual-stream detector designed to combine RGB appearance cues with event-camera motion cues under edge-computing constraints. It is part of a full-stack UAV detection pipeline covering precise RGB-Event sensing, the GAREUD benchmark, multimodal detection, and deployment on an NVIDIA Jetson AGX Orin.
+- **June 22, 2026**: Project repository created and README released.
+- The cleaned ME-Net implementation, pretrained checkpoints, training and evaluation instructions, and GAREUD access information are being prepared.
 
-The system targets difficult ground-to-air (G2A) and air-to-air (A2A) conditions, including small targets, fast motion, low or excessive illumination, background clutter, platform vibration, and ego-motion.
+## Abstract
 
-## Method
+RGB-Event fusion offers strong potential for UAV detection, but real-world deployment is limited by the lack of precisely aligned multimodal datasets and efficient edge-processing methods. We present a full-stack RGB-Event UAV detection pipeline spanning precise sensing, dataset construction, multimodal modeling, and edge deployment.
 
-ME-Net contains three main components:
+First, we construct **GAREUD**, a Ground-Aerial RGB-Event UAV Detection dataset with real-world and synthetic subsets. Microsecond-level hardware triggering and a co-axial optical configuration provide precise temporal and spatial alignment. GAREUD covers ground-to-air (G2A) and air-to-air (A2A) viewpoints under diverse illumination and motion conditions.
 
-- **Motion-aware Event Refinement (MER)** suppresses low-energy background activity and enhances motion-salient event responses.
-- **Asymmetric Cross-modal Fusion (ACF)** performs high-level RGB-Event interaction while preserving critical event-motion information when RGB quality degrades.
-- **Adaptive Multi-scale Aggregation (AMA)** uses efficient bidirectional feature aggregation to combine multi-scale features for small-UAV detection.
+Second, we propose **ME-Net**, a lightweight dual-stream detector tailored for efficient RGB-Event fusion. ME-Net combines RGB appearance cues and event motion cues through three components:
 
-```text
-RGB frames ───────────────► RGB backbone ────────┐
-                                                 ├─► ACF ─► AMA ─► Detection heads
-Event representation ─► MER ─► Event backbone ──┘
-```
+- **Motion-aware Event Refinement (MER)** suppresses background event noise and enhances motion-salient responses.
+- **Asymmetric Cross-modal Fusion (ACF)** performs high-level feature interaction while preserving critical event motion cues when RGB quality degrades.
+- **Adaptive Multi-scale Aggregation (AMA)** efficiently integrates features across scales for small-UAV detection.
 
-The detector is implemented within the Ultralytics framework and produces predictions at multiple feature scales.
+Finally, we deploy the complete sensing-to-processing pipeline on an NVIDIA Jetson AGX Orin using TensorRT FP16. The system achieves real-time performance of **52 FPS in G2A scenarios** and **34 FPS in A2A scenarios**.
 
-## Full-Stack Pipeline
+## Release Plan
 
-The accompanying work integrates:
-
-1. **Precise sensing** — co-axial RGB-Event optics and microsecond-level hardware triggering.
-2. **GAREUD** — a Ground-Aerial RGB-Event UAV Detection dataset with real-world and synthetic subsets, G2A and A2A viewpoints, and diverse illumination and motion conditions.
-3. **Efficient fusion** — ME-Net combines complementary appearance and motion information through MER, ACF, and AMA.
-4. **Edge deployment** — TensorRT FP16 inference on NVIDIA Jetson AGX Orin.
-
-The complete pipeline reaches **52 FPS in G2A scenarios** and **34 FPS in A2A scenarios** on the Jetson AGX Orin platform.
-
-## Release Status
-
-| Item | Status |
-| --- | --- |
-| Project README | Available |
-| ME-Net source code | In preparation |
-| Training and evaluation scripts | In preparation |
-| Pretrained checkpoints | In preparation |
-| GAREUD dataset and access instructions | In preparation |
-| Paper and citation metadata | In preparation |
+- [x] Project repository and README
+- [ ] ME-Net source code
+- [ ] Training and evaluation scripts
+- [ ] Pretrained checkpoints
+- [ ] GAREUD dataset and access instructions
+- [ ] Paper and citation metadata
 
 ## Citation
 
@@ -57,8 +40,12 @@ Citation information will be added when the paper becomes publicly available.
 
 ## License
 
-License and third-party dependency details will be provided together with the source-code release. ME-Net is implemented within the Ultralytics ecosystem; users should also follow the applicable upstream licensing terms.
+License and third-party dependency details will be provided with the source-code release. ME-Net is implemented within the [Ultralytics](https://github.com/ultralytics/ultralytics) ecosystem; users should also follow the applicable upstream licensing terms.
 
 ## Contact
 
-For questions about this project, please open a GitHub issue after the code release.
+For questions about this project, please submit a GitHub issue.
+
+## Thanks
+
+Our implementation is mainly based on [Ultralytics](https://github.com/ultralytics/ultralytics). We thank the authors and contributors for their work.
