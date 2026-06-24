@@ -1,4 +1,4 @@
-# Full-Stack UAV Detection Pipeline from Precise RGB-Event Sensing to Efficient Edge Processing
+# ME-Net
 
 ## Abstract
 
