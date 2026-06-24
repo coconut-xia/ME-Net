@@ -1,0 +1,81 @@
+# Parameters
+ch: 6  # input channels
+nc: 4  # number of classes
+scales:
+  n: [0.50, 0.25, 1024]
+  s: [0.50, 0.50, 1024]
+  m: [0.50, 1.00, 512]
+  l: [1.00, 1.00, 512]
+  x: [1.00, 1.50, 512]
+scale: n
+
+backbone:
+  # input processing
+  - [-1, 1, IdentityInput, []]         # 0
+  - [-1, 1, ModalitySelector, [1]]     # 1: RGB
+  - [-2, 1, ModalitySelector, [2]]     # 2: Events
+  
+  # add efficient event filter
+  - [2, 1, MER, [3, 2]]  # 3: filtered Events (3ch, reduction=2)
+ 
+  # RGB branch
+  - [1, 1, Conv, [32, 3, 2]]          # 4: RGB P1/2
+  - [-1, 1, Conv, [64, 3, 2]]         # 5: RGB P2/4
+  - [-1, 2, C2f, [128, False]]        # 6: RGB P2/4 (output 128 ch)
+ 
+  # Events branch
+  - [3, 1, Conv, [32, 3, 2]]          # 7: Events P1/2
+  - [-1, 1, Conv, [64, 3, 2]]         # 8: Events P2/4
+  - [-1, 2, C2f, [128, False]]        # 9: Events P2/4 (output 128 ch)
+ 
+  # P3 layer
+  - [-4, 1, Conv, [128, 3, 2]]        # 10: RGB P3/8
+  - [-2, 1, Conv, [128, 3, 2]]        # 11: Events P3/8
+
+  - [-2, 2, C2f, [256, False]]        # 12: RGB P3/8 (output 256 ch)
+  - [-1, 1, Conv, [256, 3, 2]]        # 13: RGB P4/16
+  - [-3, 2, C2f, [256, False]]        # 14: Events P3/8 (output 256 ch)
+  - [-1, 1, Conv, [256, 3, 2]]        # 15: Events P4/16
+
+  # P4 layer
+  - [-3, 2, C2f, [256, True]]         # 16: RGB P4/16 (output 256 ch)
+  - [-1, 1, Conv, [512, 3, 2]]        # 17: RGB P5/32
+  
+  - [-3, 2, C2f, [256, True]]         # 18: Events P4/16 (output 256 ch)
+  - [-1, 1, Conv, [512, 3, 2]]        # 19: Events P5/32
+  
+  # P5 layer
+  - [-3, 2, C2f, [512, True]]         # 20: RGB P5/32 (output 512 ch)
+  - [-1, 1, SPPF, [512, 5]]           # 21: RGB SPPF (output 512 ch)
+  - [-1, 2, C2PSA, [512]]             # 22: RGB C2PSA (output 512 ch)
+
+  - [-4, 2, C2f, [512, True]]         # 23: Events P5/32 (output 512 ch)
+  - [-1, 1, SPPF, [512, 5]]           # 24: Events SPPF (output 512 ch)
+  - [-1, 2, C2PSA, [512]]             # 25: Events C2PSA (output 512 ch)
+ 
+  # fuse at the deepest layer
+  - [[22, 25], 1, ACF, [256]]  # 26: deep fusion P5 (output 256 ch)
+
+head:
+  # fuse across all scales
+  - [[6, 9], 1, Concat, [1]]          # 27: P2 fusion (128 + 128 = 256ch)
+  - [[12, 14], 1, Concat, [1]]        # 28: P3 fusion (256 + 256 = 512ch)
+  - [[16, 18], 1, Concat, [1]]        # 29: P4 fusion (256 + 256 = 512ch)
+  
+  # adjust channels to match AMA
+  - [27, 1, Conv, [1024, 1, 1]]       # 30: fused P2 (256->1024 ch)
+  - [28, 1, Conv, [1024, 1, 1]]       # 31: fused P3 (512->1024 ch)
+  - [29, 1, Conv, [1024, 1, 1]]       # 32: fused P4 (512->1024 ch)
+  - [26, 1, Conv, [1024, 1, 1]]       # 33: fused P5 (256->1024 ch)
+ 
+  # AMA layer
+  - [[30, 31, 32, 33], 1, AMA, [256, 2, 0.1]]  # 34: AMA repeat count
+  
+  # split AMA output into individual feature layers
+  - [-1, 1, Index, [0]]               # 35: P2 (256 ch)
+  - [-2, 1, Index, [1]]               # 36: P3 (256 ch)
+  - [-3, 1, Index, [2]]               # 37: P4 (256 ch)
+  - [-4, 1, Index, [3]]               # 38: P5 (256 ch)
+  
+  # detection head - uses split feature layers
+  - [[35, 36, 37, 38], 1, Detect, [nc]]    # 39: detect using P2, P3, P4, P5

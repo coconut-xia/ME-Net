@@ -1,0 +1,82 @@
+# Parameters
+ch: 6 # input channels (3 RGB + 3 Events = 6 channels)
+nc: 1 # number of classes
+
+# model scaling definition
+scales:
+  # [depth, width, max_channels]
+  n: [0.50, 0.25, 1024]
+  s: [0.50, 0.50, 1024]
+  m: [0.50, 1.00, 512]
+  l: [1.00, 1.00, 512]
+  x: [1.00, 1.50, 512]
+
+backbone:
+  # [from, repeats, module, args]
+  - [-1, 1, IdentityInput, []] # 0: input placeholder
+  - [-1, 1, ModalitySelector, [1]] # 1: select RGB modality
+  - [-2, 1, ModalitySelector, [2]] # 2: select Events modality
+  
+  # RGB branch (unchanged)
+  - [1, 1, Conv, [32, 3, 2]] # 3: P1/2
+  - [-1, 1, Conv, [64, 3, 2]] # 4: P2/4
+  - [-1, 2, C2f, [128, False]] # 5: P2/4
+  
+  # Events branch (using SNN modules)
+  - [2, 1, MS_GetT, [3, 1]] # 6: get temporal dimension [B,3,H,W]->[B,1,3,H,W]
+  - [-1, 1, MS_DownSampling, [32, 3, 2, 1, True]] # 7: P1/2 downsample
+  - [-1, 1, MS_StandardConv, [64, 3, 2]] # 8: P2/4
+  - [-1, 2, MS_C2f, [128, False]] # 9: P2/4 feature extraction
+  
+  # continue RGB branch
+  - [5, 1, Conv, [128, 3, 2]] # 10: P3/8 (RGB)
+  - [-1, 2, C2f, [256, False]] # 11: P3/8
+  - [-1, 1, Conv, [256, 3, 2]] # 12: P4/16
+  - [-1, 2, C2f, [256, True]] # 13: P4/16
+  - [-1, 1, Conv, [512, 3, 2]] # 14: P5/32
+  - [-1, 2, C2f, [512, True]] # 15: P5/32
+  - [-1, 1, SPPF, [512, 5]] # 16: SPPF
+  - [-1, 2, C2PSA, [512]] # 17: C2PSA
+  
+  # continue Events branch (SNN)
+  - [9, 1, MS_StandardConv, [256, 3, 2]] # 18: P3/8 (Events)
+  - [-1, 3, MS_C2f, [256, True]] # 19: P3/8 feature extraction
+  - [-1, 1, MS_StandardConv, [512, 3, 2]] # 20: P4/16
+  - [-1, 3, MS_C2f, [512, True]] # 21: P4/16 feature extraction
+  - [-1, 1, MS_StandardConv, [512, 3, 2]] # 22: P5/32
+  - [-1, 3, MS_C2f, [512, True]] # 23: P5/32 feature extraction
+  - [-1, 1, SpikeSPPF, [512, 5]] # 24: SpikeSPPF
+  
+  # remove temporal dimension before fusion
+  - [19, 1, MS_CancelT, []] # 25: remove P3/8 temporal dimension
+  - [21, 1, MS_CancelT, []] # 26: remove P4/16 temporal dimension
+  - [24, 1, MS_CancelT, []] # 27: remove P5/32 temporal dimension
+  
+  # feature fusion
+  - [[11, 25], 1, Concat, [1]] # 28: fuse P3/8 features (RGB + Events)
+  - [[13, 26], 1, Concat, [1]] # 29: fuse P4/16 features (RGB + Events)
+  - [[17, 27], 1, Concat, [1]] # 30: fuse P5/32 features (RGB + Events)
+
+head:
+  # P5 -> P4 upsampling path
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 31: upsample (from 30, P5->P4)
+  - [[-1, 29], 1, Concat, [1]] # 32: fuse upsample features and 29 (P4 level)
+  - [-1, 2, C2f, [256, False]] # 33: process P4 fused features
+  
+  # P4 -> P3 upsample path
+  - [-1, 1, nn.Upsample, [None, 2, "nearest"]] # 34: upsample (from 33, P4->P3)
+  - [[-1, 28], 1, Concat, [1]] # 35: fuse upsample features and 28 (P3 level)
+  - [-1, 2, C2f, [128, False]] # 36: process P3 fused features (P3/8-small)
+  
+  # P3 -> P4 downsample path
+  - [-1, 1, Conv, [128, 3, 2]] # 37: downsample (P3->P4)
+  - [[-1, 33], 1, Concat, [1]] # 38: fuse downsample features and 33 (P4 level)
+  - [-1, 2, C2f, [256, False]] # 39: P4 final features (P4/16-medium)
+  
+  # P4 -> P5 downsample path
+  - [-1, 1, Conv, [256, 3, 2]] # 40: downsample (P4->P5)
+  - [[-1, 30], 1, Concat, [1]] # 41: fuse downsample features and 30 (P5 level)
+  - [-1, 2, C2f, [512, True]] # 42: P5 final features (P5/32-large)
+  
+  # three-scale detection head
+  - [[36, 39, 42], 1, Detect, [nc]] # detect at P3, P4, P5 scales

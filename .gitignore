@@ -1,0 +1,30 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+.idea/
+.vscode/
+
+# Generated model artifacts
+*.pt
+*.pth
+*.onnx
+*.engine
+*.torchscript
+
+# Training and validation outputs
+runs/
+wandb/
+
+# Local datasets and caches
+/data/
+/datasets/
+*.cache
+
+# OS/editor files
+.DS_Store
+Thumbs.db
