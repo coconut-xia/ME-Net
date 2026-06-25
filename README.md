@@ -25,7 +25,7 @@ For a different CUDA version, install the matching PyTorch build first and then 
 Download `me-net.pt` from the [Google Drive folder](https://drive.google.com/drive/folders/1iiOtoAMWPsnER3bFPe82GhgzcpgVlxe7?usp=drive_link) and place it at:
 
 ```text
-weights/me-net.pt
+me-net.pt
 ```
 
 The checkpoint is hosted separately and is not tracked in this repository.
